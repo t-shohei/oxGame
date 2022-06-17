@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="main.js"></script>
+    <title>オセロ</title>
+</head>
+<body>
+    <p>{{$.Turn}}の{{$.Win}}</p>
+    {{range $i, $val := .List}}
+        <div>
+            {{range $j, $v := $val}}
+                {{ if ne $v "" }}
+                    <span>{{ $v }}</span>
+                {{ else }}
+                    <button id="{{$i}}_{{$j}}" onclick="f(this.id)"></button>
+                {{ end }}
+            {{ end }}
+            </div>
+    {{ end }}
+    {{ $.List }}
+    <form name="MyForm" method="post">
+        <input type="hidden" name="res" value="" id="res">
+    </form>
+</body>
+<script>
+    function f(id) {
+        document.getElementById("res").value = id
+        document.forms["MyForm"].submit();
+
+    }
+</script>
+</html>
