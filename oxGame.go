@@ -1,9 +1,5 @@
-// mainパッケージ定義
 package main
-
-// パッケージ fmt, html/template, net/http をインポート
 import (
-
 	"fmt"
 	"html/template"
 	"net/http"
@@ -11,23 +7,21 @@ import (
 	"strings"
 )
 
-/* テンプレートの設定
-ParseFiles関数（html/templateパッケージ）
-    テンプレート template1.html を読み込む
-    ParseFiles関数は、Template構造体のポインタを返す
-Must関数（html/templateパッケージ）
-    テンプレートファイルの読み込みに失敗した場合パニック発生させて
-    プログラムを終了する
-    Must関数は Template構造体のポインタを返す
-*/
-var tmpl = template.Must(template.ParseFiles("othell.html"))
+var tmpl = template.Must(template.ParseFiles("oxGame.html"))
 type OxGame struct {
     Turn string
     List [][]string
     Win  string
 }
 
-func (game *OxGame) judge(w http.ResponseWriter, r *http.Request) {
+var game OxGame
+var End = false
+func judge(w http.ResponseWriter, r *http.Request) {
+    if End {
+        game = OxGame{"o", [][]string{{"", "", ""}, {"", "", ""}, {"", "", ""}}, "手番"}
+        End = false
+    }
+    
     res := r.FormValue("res")
     if res != "" {
         val := strings.Split(res,"_")
@@ -46,7 +40,6 @@ func (game *OxGame) judge(w http.ResponseWriter, r *http.Request) {
             {[]int{0,2},[]int{1,2},[]int{2,2}},
             {[]int{0,2},[]int{1,1},[]int{2,0}},
             {[]int{0,0},[]int{1,1},[]int{2,2}},
-
         }
     //勝敗ついてるか
         for i := 0; i < len(lines); i++ {
@@ -59,13 +52,25 @@ func (game *OxGame) judge(w http.ResponseWriter, r *http.Request) {
         if !flg{
             if game.Turn == "o" {
                 game.Turn = "x"
-            }else{
+            }else if game.Turn == "x"{
                 game.Turn ="o"
+            }else{
+                game.Turn = "o"
             }
         }       
     //勝ってたら
         if flg {
             game.Win = "勝ち"
+            for i := 0; i < 3; i++ {
+                for j := 0; j < 3; j++ {
+                    if game.List[i][j] == "o" || game.List[i][j] == "x"{
+                        continue
+                    }else{
+                        game.List[i][j] = "-"
+                    }
+                }
+            }
+            End = true
         }
     }
 
@@ -79,11 +84,12 @@ func (game *OxGame) judge(w http.ResponseWriter, r *http.Request) {
     }
 }
 
+
 func main() {
-    game := &OxGame{" ", [][]string{{"", "", ""}, {"", "", ""}, {"", "", ""}}, "手番"}
-    http.HandleFunc("/", game.judge)
+    game = OxGame{"o", [][]string{{"", "", ""}, {"", "", ""}, {"", "", ""}}, "手番"}
+    http.HandleFunc("/oxGame", judge)
     // Webサーバーを起動（ポート番号 8888）
-    result := http.ListenAndServe(":8888", nil)
+    result := http.ListenAndServe(":8080", nil)
     if result != nil {
         fmt.Println(result)
     }
